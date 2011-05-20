@@ -1,0 +1,8 @@
+#!/bin/bash
+
+while : 
+do
+	php tests.php
+	sleep 2
+	clear
+done
