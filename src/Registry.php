@@ -1,8 +1,11 @@
 <?php
 namespace phmop;
 
+use Phutility\Func;
+
 class Registry {
 	private static $classes = array(); 
+	private static $classMethods = array();
 	private static $methods = array(); 
 	private static $generics = array();
 	private static $namespace = '';
@@ -76,11 +79,31 @@ class Registry {
 		return $meta;
 	}
 		
+	public static function registerMethodForClass($class, $name, &$func)
+	{
+		if(!isset(self::$classMethods[$class])) {
+			self::$classMethods[$class] = array();
+		}
+		
+		self::$classMethods[$class][$name] =& $func;
+	}
+	
 	public static function addMethod($name, $meta) {
 		if(isset(self::$generics[$name])) {
-			foreach($meta->allOfType('Arity') as $arity) {
-				self::$generics[$name][implode(':', $arity->prior())] = $arity->last();
+			$funcs = $meta->filter(function($i) { return $i instanceof \Closure; });
+
+			if(empty($funcs)) {
+				throw new \Exception("At least one method is required");
 			}
+
+			foreach($funcs as &$func) {
+				foreach(Func::getParameters($func) as $param) {
+					$class = self::getFQN($param->getClass()->getName());
+					self::$generics[$name][$class] =& $func;
+					self::registerMethodForClass($class, $name, $func);
+				}
+			}
+
 		} else { 
 			self::$methods[$name] = $meta;
 		}
@@ -109,6 +132,15 @@ class Registry {
 	}
 	
 	public function dispatchMethod($obj, $method, $args) {
+		//check method 
+			//check for before / after / around wrappers
+		
+		$class = get_class($obj);
+		if(isset(self::$classMethods[$class][$method])) {
+			array_unshift($args, $obj);
+			return call_user_func_array(self::$classMethods[$class][$method], $args);
+		}
+		
 		throw new \Exception("Could not find $method on " . get_class($obj));
 	}
 }

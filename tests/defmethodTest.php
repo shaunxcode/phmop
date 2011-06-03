@@ -18,24 +18,25 @@ defclass(colorMixin,
 	
 defclass(colorRectangle,
 	extend(colorMixin, rectangle),
-	slot(clearp, function() { return true; })->accessor(clearp));
+	slot(clearp),
+	method(clearp, function() { return true; }));
 	
 defgeneric(paint, x);
 
 defmethod(paint,
-	arity(rectangle, function($x) {
+	function(rectangle $x) {
 		verticalStroke(
 			$x->height, 
-			$x->width);}));
+			$x->width);});
 
 defmethod(paint,
 	before(),
-	arity(colorMixin, function($x) {
-		setBrushColor($x->cyan, $x->magenta, $x->yellow);}));
+	function(colorMixin $x) {
+		setBrushColor($x->cyan, $x->magenta, $x->yellow);});
 
 defmethod(paint,
-	arity(colorRectangle, function($x) {
-		if($x->clearp()) return callNextMethod();}));
+	function(colorRectangle $x) {
+		return "Called paint for type of colorRectangle";});
 
 $door = new colorRectangle(
 	width, 38, 
@@ -51,7 +52,7 @@ Test::assert("Is instance of rectangle", $door->isInstanceOf(rectangle));
 Test::throwsException("exception on bad method", function() use($door) { $door->isMagicPig(); });
 Test::assert("access property", $door->width, 38);
 Test::assert("can access mixin property", $door->yellow, 65);
-Test::assert("call generic method", $door->paint());
+Test::assert("call generic method", $door->paint(), "Called paint for type of colorRectangle");
 
 //$method = Registry::getMethod(Paint);
 //Test::assert("Is a Method node", $method->isType(Method), true);

@@ -6,6 +6,7 @@ namespace {
 	require_once 'vendor/phutility/src/Node.php';
 	require_once 'vendor/phutility/src/Invokable.php';
 	require_once 'vendor/phutility/src/Appos.php';
+	require_once 'vendor/phutility/src/Func.php';
 	
 	require_once 'src/MetaArg.php';
 	require_once 'src/Registry.php';
@@ -45,6 +46,10 @@ namespace {
 		}
 	}
 
+	function method($name, $func) {
+		return MetaArg('Method')->name($name)->func($func);
+	}
+	
 	function before() {
 		return MetaArg('Before');
 	}
